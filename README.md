@@ -14,6 +14,7 @@
   - [部署含前端版本](#部署含前端版本)
   - [启用认证](#启用认证)
   - [配置代理](#配置代理)
+- [作为 Skill 使用（Hermes/OpenClaw）](#作为-skill-使用hermesopenclaw)
 - [使用指南](#使用指南)
   - [搜索资源](#搜索资源)
   - [检测链接](#检测链接)
@@ -197,6 +198,81 @@ docker run -d \
 ```
 
 > **提示**：仅 TG 频道搜索需要代理，插件搜索一般不需要。
+
+---
+
+## 作为 Skill 使用（Hermes/OpenClaw）
+
+本项目可以作为 AI Agent 的 Skill 使用，让 Agent 具备网盘资源搜索能力。
+
+### 安装 Skill
+
+```bash
+# 方式一：git clone（推荐）
+git clone https://github.com/godzx001-dot/NDS.git ~/.hermes/skills/netdisk-search
+
+# 方式二：下载 zip
+curl -L https://github.com/godzx001-dot/NDS/archive/main.zip -o /tmp/nds.zip
+unzip /tmp/nds.zip -d ~/.hermes/skills/
+mv ~/.hermes/skills/NDS-main ~/.hermes/skills/netdisk-search
+rm /tmp/nds.zip
+```
+
+OpenClaw 用户安装到 `~/.openclaw/skills/netdisk-search`。
+
+### 首次使用
+
+安装后先部署搜索服务（一次性）：
+
+```bash
+cd ~/.hermes/skills/netdisk-search
+bash scripts/deploy.sh
+```
+
+### Agent 中的自然语言使用
+
+安装后，Agent 对话中可以直接用自然语言触发：
+
+```
+用户: 帮我搜一下 "速度与激情" 的网盘资源
+用户: 找一下 Python教程，只要百度和夸克
+用户: 搜个唐朝诡事录，要合集不要预告
+用户: 帮我检测一下这个链接: https://pan.quark.cn/s/xxx
+用户: 帮我部署一下网盘搜索服务
+```
+
+Agent 会自动：
+1. 识别搜索意图，调用对应脚本
+2. 解析搜索结果，按网盘类型分组
+3. 格式化展示（链接、提取码、来源、时间）
+4. 检测链接有效性并返回状态
+
+### 触发词
+
+以下词汇会触发此 Skill：
+
+| 触发词 | 动作 |
+|--------|------|
+| 搜资源、找资源、网盘搜、搜网盘 | 搜索资源 |
+| 搜片、找片、搜电影、找电影 | 搜索影视资源 |
+| 检测链接、验证链接 | 链接有效性检测 |
+| 部署搜索 | 部署搜索服务 |
+
+### 调用流程
+
+```
+用户: 搜一下 "Python教程"
+  ↓
+1. 探测 API 地址（NETDISK_API_URL > localhost:8888）
+  ↓
+2. 调用 scripts/search.py "Python教程"
+  ↓
+3. 解析 JSON 结果，按网盘类型分组
+  ↓
+4. 格式化输出：标题 + 提取码 + 链接 + 来源 + 时间
+  ↓
+返回给用户
+```
 
 ---
 
