@@ -91,7 +91,7 @@ def search(api_url, kw, src="all", cloud_types=None, include=None,
 
     body = {
         "kw": kw,
-        "res": "merge",
+        "res": "all",
         "src": src,
     }
 
@@ -123,6 +123,9 @@ def search(api_url, kw, src="all", cloud_types=None, include=None,
         with urllib.request.urlopen(req, timeout=30) as resp:
             raw = resp.read().decode("utf-8")
             result = json.loads(raw)
+            # 兼容 {"code":0, "data":{...}} 包装格式
+            if "code" in result and "data" in result:
+                result = result["data"]
     except urllib.error.HTTPError as e:
         body_text = ""
         try:
